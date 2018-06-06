@@ -2,7 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser');
 const request = require('request');
 const cheerio = require('cheerio');
-const sortedUniqBy = require('lodash/sortedUniqBy');
+const uniq = require('lodash/uniq');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -38,8 +38,8 @@ const alpha = {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.locals.shows = [];
-app.locals.sorted;
+app.locals.urls = [];
+app.locals.showData = [];
 
 app.get('/', (req, res) => {
   for (var item in alpha) {
@@ -47,26 +47,41 @@ app.get('/', (req, res) => {
       if (!error && response.statusCode == 200) {
         const $ = cheerio.load(html);
         $('span.series-title').each(function(i, element) {
-          let text = $(this).text();
-          let url = $(this).parent().parent().attr('href');
-          let metadata = {
-            title: text,
-            url,
-          };
-          app.locals.shows.push(metadata);
+          const url = $(this).parent().parent().attr('href');
+          app.locals.urls.push(url);
         });
       }
     });
   }
-  res.send('done');
+  res.send(uniq(app.locals.urls));
 });
 
+app.get('/shows', (req, res) => {
+  for (var url in app.locals.urls) {
+    request(`http://www.crunchyroll.com/${app.locals.urls[url]}/reviews/helpful/page1`, (error, response, html) => {
+      if (!error && response.statusCode == 200) {
+        const $ = cheerio.load(html);
+        const description = $('span.more').text().trim();
+        const rating = $('span #showview_about_avgRatingText').text();
+        const title = $('span[itemprop=name]').text();
 
-// unnecessary step -- only need to remove duplicates and then sort at the final step instead
+        const metadata = {
+          title,
+          description,
+          rating
+        }
+
+        app.locals.showData.push(metadata)
+      }
+    });
+  }
+  res.send('cool');
+})
+
 app.get('/sorted', (req, res) => {
-  const sorted = app.locals.shows.sort((a, b) => {
-    var nameA = a.title.toUpperCase();
-    var nameB = b.title.toUpperCase();
+  const sorted = app.locals.showData.sort((a, b) => {
+    const nameA = a.title.toUpperCase();
+    const nameB = b.title.toUpperCase();
     if (nameA < nameB) {
       return -1;
     }
@@ -77,24 +92,7 @@ app.get('/sorted', (req, res) => {
     return 0;
   })
 
-  app.locals.sorted = sortedUniqBy(sorted, "title");
-  res.send('donezo');
-})
-
-app.get('/sorted2', (req, res) => {
-  for (var show in app.locals.sorted) {
-    let title = app.locals.sorted[show].title;
-    request(`http://www.crunchyroll.com/${app.locals.sorted[show].url}/reviews/helpful/page1`, (error, response, html) => {
-      if (!error && response.statusCode == 200) {
-        const $ = cheerio.load(html);
-        let description = $('span.more').text();
-        let rating = $('span #showview_about_avgRatingText').text();
-
-        console.log(title);
-      }
-    });
-  }
-  res.send('cool');
+  res.send(sorted);
 })
 
 
