@@ -39,6 +39,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.locals.shows = [];
+app.locals.sorted;
 
 app.get('/', (req, res) => {
   for (var item in alpha) {
@@ -60,6 +61,8 @@ app.get('/', (req, res) => {
   res.send('done');
 });
 
+
+// unnecessary step -- only need to remove duplicates and then sort at the final step instead
 app.get('/sorted', (req, res) => {
   const sorted = app.locals.shows.sort((a, b) => {
     var nameA = a.title.toUpperCase();
@@ -74,8 +77,25 @@ app.get('/sorted', (req, res) => {
     return 0;
   })
 
-  res.send(sortedUniqBy(sorted, "title"));
-
+  app.locals.sorted = sortedUniqBy(sorted, "title");
+  res.send('donezo');
 })
+
+app.get('/sorted2', (req, res) => {
+  for (var show in app.locals.sorted) {
+    let title = app.locals.sorted[show].title;
+    request(`http://www.crunchyroll.com/${app.locals.sorted[show].url}/reviews/helpful/page1`, (error, response, html) => {
+      if (!error && response.statusCode == 200) {
+        const $ = cheerio.load(html);
+        let description = $('span.more').text();
+        let rating = $('span #showview_about_avgRatingText').text();
+
+        console.log(title);
+      }
+    });
+  }
+  res.send('cool');
+})
+
 
 app.listen(port, () => console.log(`Listening on port ${port}`));
