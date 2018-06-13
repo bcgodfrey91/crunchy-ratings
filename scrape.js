@@ -1,5 +1,7 @@
 const request = require('request');
+const rp = require('request-promise');
 const cheerio = require('cheerio');
+
 const alpha = {
   0: 'a',
   1: 'b',
@@ -29,20 +31,38 @@ const alpha = {
   25: 'z',
 }
 
-for (var item in alpha) {
-  request(`http://www.crunchyroll.com/videos/anime/alpha?group=a`, (error, response, html) => {
-    if (!error && response.statusCode == 200) {
-      const $ = cheerio.load(html);
-      $('span.series-title').each(function (i, element) {
-        let text = $(this).text();
-        let url = $(this).parent().parent().attr('href');
-        let metadata = {
-          title: text,
-          href: url
-        }
-        shows.push(metadata);
-      });
+const getOptions = () => {
+  const options = [];
+  for (item in alpha) {
+    const option = {
+      uri: `http://www.crunchyroll.com/videos/anime/alpha?group=${alpha[item]}`,
+      transform: function (html) {
+        return cheerio.load(html);
+      },
     }
-  });
+    options.push(option);
+  }
+  return options
 }
 
+const getShowUrls = () => {
+  const options = getOptions();
+  for (option in options) {
+    rp(options[option])
+      .then($ => {
+      const shows = [];
+      $('span.series-title').each(function (i, element) {
+        let url = $(this).parent().parent().attr('href');
+        shows.push(url);
+      });
+      return shows;
+    });
+  }
+};
+
+
+async function doThingsPlease() {
+  const allShows = await getShowUrls();
+}
+
+doThingsPlease();
