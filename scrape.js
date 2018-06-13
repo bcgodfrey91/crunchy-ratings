@@ -63,6 +63,7 @@ const getShowUrls = () => {
 
 async function doThingsPlease() {
   const allShows = await getShowUrls();
+  console.log('hello');
 }
 
 doThingsPlease();
