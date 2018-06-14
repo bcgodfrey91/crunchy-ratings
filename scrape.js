@@ -81,10 +81,36 @@ const createListOfUrlsForEachAnime = (urls) => {
   return options;
 }
 
+const scrapeShowData = ($) => {
+  const description = $('span.more').text().trim();
+  const rating = $('span #showview_about_avgRatingText').text();
+  const title = $('span[itemprop=name]').text();
+
+  const metadata = {
+    title,
+    description,
+    rating
+  }
+
+  return metadata;
+}
+
+async function getShowData(options) {
+  let allShowData = [];
+  for (option in options) {
+    const pageForShow = await rp(options[option]);
+    const showData = await scrapeShowData(pageForShow);
+
+    allShowData.push(showData);
+  }
+  return allShowData;
+}
+
 async function doThingsPlease() {
   const listOfUrlsByAlpha = await createListOfUrlsByAlpha();
   const listOfHrefForShows = await createListOfShowHrefs(listOfUrlsByAlpha);
   const listOfUrlsForAnime = await createListOfUrlsForEachAnime(listOfHrefForShows);
+  const getDataForShow = await getShowData(listOfUrlsForAnime);
 }
 
 doThingsPlease();
