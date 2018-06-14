@@ -33,7 +33,7 @@ const alpha = {
   26: 'numeric',
 }
 
-const getOptions = () => {
+const createListOfUrlsByAlpha = () => {
   const options = [];
   for (item in alpha) {
     const option = {
@@ -47,7 +47,7 @@ const getOptions = () => {
   return options
 }
 
-const getShowsForUrl = ($) => {
+const scrapeShowHref = ($) => {
   const urlsForPage= [];
   $('span.series-title').each(function (i, element) {
     let url = $(this).parent().parent().attr('href');
@@ -56,21 +56,35 @@ const getShowsForUrl = ($) => {
   return urlsForPage;
 }
 
-async function getShowUrls(options) {
+async function createListOfShowHrefs(options) {
   let allUrls = [];
   for (option in options) {
-    let urlOption = await rp(options[option]);
-    let showsForUrl = await getShowsForUrl(urlOption);
+    const urlOption = await rp(options[option]);
+    const showsForUrl = await scrapeShowHref(urlOption);
 
     allUrls = allUrls.concat(showsForUrl);
   }
-
-  console.log(uniq(allUrls));
+  return uniq(allUrls);
 };
 
+const createListOfUrlsForEachAnime = (urls) => {
+  const options = [];
+  for (url in urls) {
+    const option = {
+      uri: `http://www.crunchyroll.com/${urls[url]}/reviews/helpful/page1`,
+      transform: function (html) {
+        return cheerio.load(html);
+      },
+    }
+    options.push(option);
+  }
+  return options;
+}
+
 async function doThingsPlease() {
-  const showOptions = await getOptions();
-  const showUrls = await getShowUrls(showOptions);
+  const listOfUrlsByAlpha = await createListOfUrlsByAlpha();
+  const listOfHrefForShows = await createListOfShowHrefs(listOfUrlsByAlpha);
+  const listOfUrlsForAnime = await createListOfUrlsForEachAnime(listOfHrefForShows);
 }
 
 doThingsPlease();
