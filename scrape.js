@@ -1,6 +1,7 @@
 const request = require('request');
 const rp = require('request-promise');
 const cheerio = require('cheerio');
+const uniq = require('lodash/uniq');
 
 const alpha = {
   0: 'a',
@@ -29,6 +30,7 @@ const alpha = {
   23: 'x',
   24: 'y',
   25: 'z',
+  26: 'numeric',
 }
 
 const getOptions = () => {
@@ -45,25 +47,30 @@ const getOptions = () => {
   return options
 }
 
-const getShowUrls = () => {
-  const options = getOptions();
+const getShowsForUrl = ($) => {
+  const urlsForPage= [];
+  $('span.series-title').each(function (i, element) {
+    let url = $(this).parent().parent().attr('href');
+    urlsForPage.push(url);
+  });
+  return urlsForPage;
+}
+
+async function getShowUrls(options) {
+  let allUrls = [];
   for (option in options) {
-    rp(options[option])
-      .then($ => {
-      const shows = [];
-      $('span.series-title').each(function (i, element) {
-        let url = $(this).parent().parent().attr('href');
-        shows.push(url);
-      });
-      return shows;
-    });
+    let urlOption = await rp(options[option]);
+    let showsForUrl = await getShowsForUrl(urlOption);
+
+    allUrls = allUrls.concat(showsForUrl);
   }
+
+  console.log(uniq(allUrls));
 };
 
-
 async function doThingsPlease() {
-  const allShows = await getShowUrls();
-  console.log('hello');
+  const showOptions = await getOptions();
+  const showUrls = await getShowUrls(showOptions);
 }
 
 doThingsPlease();
