@@ -166,12 +166,12 @@ async function doTheScrape() {
   const saveAnimeToDB = await sendAnimeToDB(sortedAnime);
 }
 
-const checkDB = () => {
-  Show.find({
-    rating: '5.0'
-  })
-  .then(result => console.log(result))
-  .catch(err => console.log(err));
-}
+// const checkDB = () => {
+//   Show.find({
+//     rating: '5.0'
+//   })
+//   .then(result => console.log(result))
+//   .catch(err => console.log(err));
+// }
 
-checkDB();
+doTheScrape();
