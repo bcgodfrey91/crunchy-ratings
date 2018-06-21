@@ -74,7 +74,7 @@ const scrapeShowHref = ($) => {
 async function createListOfShowHrefs(options) {
   let allUrls = [];
   for (option in options) {
-    const urlOption = await rp(options[option]);
+    const urlOption = await rp(options[option]).catch(err => console.log(err));
     const showsForUrl = await scrapeShowHref(urlOption);
 
     allUrls = allUrls.concat(showsForUrl);
@@ -102,15 +102,20 @@ const scrapeShowData = ($, link) => {
   const description = $('span.more').text().trim();
   const rating = $('span #showview_about_avgRatingText').text();
   const title = $('span[itemprop=name]').text();
+  const votes = $('span[itemprop=votes]').text();
+  const image = $('img[itemprop=image]').attr('src');
   const url = link.replace(/reviews/g, '');
 
   const metadata = {
     title,
     description,
     rating,
+    votes,
+    image,
     url
   }
-  console.log('metadata created');
+  console.log(metadata);
+
   return metadata
 }
 
@@ -119,7 +124,7 @@ async function getShowData(options) {
   console.log('scraping data');
   for (option in options) {
     const url = options[option];
-    const pageForShow = await rp(url);
+    const pageForShow = await rp(url).catch(err => console.log(err));
     const showData = await scrapeShowData(pageForShow, url.uri);
 
     allShowData.push(showData);
@@ -138,9 +143,12 @@ const sendAnimeToDB = (shows) => {
   shows.forEach((anime) => {
     let show = new Show({
       _id: new mongoose.Types.ObjectId(),
-      name: anime.title,
+      title: anime.title,
       description: anime.description,
-      rating: anime.rating
+      rating: anime.rating,
+      votes: anime.votes,
+      image: anime.image,
+      url: anime.url
     })
 
     show.save()
@@ -154,8 +162,16 @@ async function doTheScrape() {
   const listOfHrefForShows = await createListOfShowHrefs(listOfUrlsByAlpha);
   const listOfUrlsForAnime = await createListOfUrlsForEachAnime(listOfHrefForShows);
   const listOfShows = await getShowData(listOfUrlsForAnime);
-  const sortedAnime = await sortAnimeByRating(dataForShows);
+  const sortedAnime = await sortAnimeByRating(listOfShows);
   const saveAnimeToDB = await sendAnimeToDB(sortedAnime);
 }
 
-doTheScrape();
+const checkDB = () => {
+  Show.find({
+    rating: '5.0'
+  })
+  .then(result => console.log(result))
+  .catch(err => console.log(err));
+}
+
+checkDB();
