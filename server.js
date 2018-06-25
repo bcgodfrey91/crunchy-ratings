@@ -22,6 +22,20 @@ mongoose.connect(process.env.MONGO)
 
 app.get('/', (req, res) => {
   Show.find()
-  .then(response => res.status(201).send(response))
+  .then(response => {
+    const showList = [];
+    response.filter(show => {
+      if (parseInt(show.votes) >= 400) {
+        const votes = parseInt(show.votes);
+        const votesAndMin = votes + 400;
+        const wA = (votes / votesAndMin) * parseInt(show.rating) + (400 / votesAndMin) * 4.6;
+        const roundedWA = (Math.max(Math.round(wA * 10) / 10, 2.8).toFixed(1));
+        show.rating = roundedWA;
+        showList.push(show);
+      }
+    })
+    console.log(showList.length);
+    res.send(showList.sort((a, b) => b.rating - a.rating));
+  })
   .catch(err => res.status(500).send(err));
 });
