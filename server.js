@@ -29,7 +29,7 @@ app.get('/shows', (req, res) => {
         const votes = parseInt(show.votes);
         const votesAndMin = votes + 400;
         const wA = (votes / votesAndMin) * parseFloat(show.rating) + (400 / votesAndMin) * 4.6;
-        const roundedWA = Math.max(Math.round(wA * 10) / 10, 2.8).toFixed(1);
+        const roundedWA = Math.max(Math.round(wA * 100) / 100, 2.8).toFixed(2);
         show.rating = roundedWA;
         showList.push(show);
       }
