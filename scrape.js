@@ -99,7 +99,13 @@ const createListOfUrlsForEachAnime = (urls) => {
 }
 
 const scrapeShowData = ($, link) => {
-  const description = $('span.more').text().trim();
+  let description;
+  if ($('span.more')) {
+    description = $('span.more').text().trim();
+  } else {
+    description = $('span.trunc-desc').text().trim();
+  }
+
   const rating = $('span #showview_about_avgRatingText').text();
   const title = $('span[itemprop=name]').text();
   const votes = $('span[itemprop=votes]').text();
