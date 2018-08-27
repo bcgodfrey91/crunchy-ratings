@@ -29,6 +29,7 @@
     "request-promise": "^4.2.2"
   },
   "devDependencies": {
+    "image-data-uri": "^1.1.1",
     "nodemon": "^1.17.5"
   }
 }

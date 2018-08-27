@@ -1,4 +1,3 @@
-const request = require('request');
 const rp = require('request-promise');
 const cheerio = require('cheerio');
 const uniq = require('lodash/uniq');
@@ -99,13 +98,12 @@ const createListOfUrlsForEachAnime = (urls) => {
 }
 
 const scrapeShowData = ($, link) => {
-  let description;
-  if ($('span.more')) {
-    description = $('span.more').text().trim();
+  let desc = $('span.trunc-desc');
+  if (desc) {
+    desc = $('span.trunc-desc').text().trim();
   } else {
-    description = $('span.trunc-desc').text().trim();
+    desc = $('span.more').text().trim();
   }
-
   const rating = $('span #showview_about_avgRatingText').text();
   const title = $('span[itemprop=name]').text();
   const votes = $('span[itemprop=votes]').text();
@@ -114,7 +112,7 @@ const scrapeShowData = ($, link) => {
 
   const metadata = {
     title,
-    description,
+    description: desc,
     rating,
     votes,
     image,
@@ -158,8 +156,8 @@ const sendAnimeToDB = (shows) => {
     })
 
     show.save()
-    .then(result =>  console.log(result))
-    .catch(err => console.log(err))
+      .then(result => console.log(result))
+      .catch(err => console.log(err))
   })
 }
 
@@ -173,11 +171,17 @@ async function doTheScrape() {
 }
 
 // const checkDB = () => {
-//   Show.find({
-//     rating: '5.0'
-//   })
-//   .then(result => console.log(result))
-//   .catch(err => console.log(err));
+//   // Show.remove({}, function (err) {
+//   //   if (err) {
+//   //     console.log(err);
+//   //     return;
+//   //   }
+
+//   //   console.log('done');
+//   // });
+
+//   Show.find()
+//   .then(r => console.log(r.length));
 // }
 
 doTheScrape();
