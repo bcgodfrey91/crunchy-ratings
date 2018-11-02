@@ -2,6 +2,7 @@ const rp = require('request-promise');
 const cheerio = require('cheerio');
 const uniq = require('lodash/uniq');
 const mongoose = require('mongoose');
+const imageDataURI = require('image-data-uri');
 const Show = require('./models/show');
 require('dotenv').config();
 
@@ -98,12 +99,11 @@ const createListOfUrlsForEachAnime = (urls) => {
 }
 
 const scrapeShowData = ($, link) => {
-  let desc = $('span.trunc-desc');
-  if (desc) {
+  let desc = $('span.more').text().trim();
+  if (desc === '' || !desc) {
     desc = $('span.trunc-desc').text().trim();
-  } else {
-    desc = $('span.more').text().trim();
   }
+
   const rating = $('span #showview_about_avgRatingText').text();
   const title = $('span[itemprop=name]').text();
   const votes = $('span[itemprop=votes]').text();
@@ -169,19 +169,5 @@ async function doTheScrape() {
   const sortedAnime = await sortAnimeByRating(listOfShows);
   const saveAnimeToDB = await sendAnimeToDB(sortedAnime);
 }
-
-// const checkDB = () => {
-//   // Show.remove({}, function (err) {
-//   //   if (err) {
-//   //     console.log(err);
-//   //     return;
-//   //   }
-
-//   //   console.log('done');
-//   // });
-
-//   Show.find()
-//   .then(r => console.log(r.length));
-// }
 
 doTheScrape();
