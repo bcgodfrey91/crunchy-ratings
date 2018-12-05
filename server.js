@@ -21,7 +21,7 @@ mongoose.connect(process.env.MONGO)
 });
 
 app.get('/shows', (req, res) => {
-  Show.find()
+  Show.find({}, 'title description rating votes image url')
   .then(response => {
     const showList = [];
     response.filter(show => {
@@ -35,6 +35,7 @@ app.get('/shows', (req, res) => {
       }
     })
     res.send(showList.sort((a, b) => b.rating - a.rating));
+    console.log(showList);
   })
   .catch(err => res.status(500).send(err));
 });

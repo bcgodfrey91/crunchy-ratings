@@ -2,7 +2,6 @@ const rp = require('request-promise');
 const cheerio = require('cheerio');
 const uniq = require('lodash/uniq');
 const mongoose = require('mongoose');
-const imageDataURI = require('image-data-uri');
 const Show = require('./models/show');
 require('dotenv').config();
 
@@ -98,7 +97,8 @@ const createListOfUrlsForEachAnime = (urls) => {
   return options;
 }
 
-const scrapeShowData = ($, link) => {
+
+async function scrapeShowData($, link) {
   let desc = $('span.more').text().trim();
   if (desc === '' || !desc) {
     desc = $('span.trunc-desc').text().trim();
@@ -154,7 +154,6 @@ const sendAnimeToDB = (shows) => {
       image: anime.image,
       url: anime.url
     })
-
     show.save()
       .then(result => console.log(result))
       .catch(err => console.log(err))

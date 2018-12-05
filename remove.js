@@ -12,17 +12,12 @@ mongoose.connect(process.env.MONGO)
   });
 
 const removeDB = () => {
-  // Show.remove({}, function (err) {
-  //   if (err) {
-  //     console.log(err);
-  //     return;
-  //   }
-
-  //   console.log('done');
-  // });
+  // Show.find({}, 'title')
+  // .then(r => r.forEach(show => Show.where().findOneAndRemove({}, show.title)));
 
 
-  // Show.find()
+
+  // Show.find({}, 'title')
   // .then(r => console.log(r.length));
 }
 removeDB();
